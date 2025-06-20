@@ -1,0 +1,57 @@
+networks:
+  laravel:
+    external: true
+
+services:
+  app:
+    build: .
+    container_name: laravel_app
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8000:8000" # puerto para php artisan serve si quieres
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - laravel
+    depends_on:
+      - mariadb
+
+  mariadb:
+    image: mariadb:10.5
+    container_name: laravel_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: laravel_db
+      MYSQL_USER: laravel_user
+      MYSQL_PASSWORD: laravel_pass
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - laravel
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: laravel_phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mariadb
+      MYSQL_ROOT_PASSWORD: rootpassword
+    networks:
+      - laravel
+
+  node:
+    image: node:18
+    container_name: laravel_node
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - laravel
+    command: tail -f /dev/null
+
+volumes:
+  mariadb_data:
